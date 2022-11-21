@@ -13,16 +13,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('order_items', function (Blueprint $table) {
+        Schema::create('vending_machines', function (Blueprint $table) {
             $table->id();
-            $table->string('item_name');
+            $table->string('owner');
+            $table->string('capactiy');
+            $table->string('model');
             $table->string('manufactory');
-            $table->integer('amount');
-            $table->foreignIdFor(User::class);
-            $table->foreignIdFor(Product::class);
-            $table->softDeletes();
+            $table->geometry('positions');
+            $table->boolean('Maintenance')->default(false);
+            $table->boolean('active')->default(true);
+            $table->integer('total_money_Collected');
+            $table->integer('cerrent_money_Collected');
             $table->timestamps();
-            $table->comment('order_items log');
         });
     }
 
@@ -33,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('order_items');
+        Schema::dropIfExists('vending_machines');
     }
 };

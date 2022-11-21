@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Use App\Http\Controllers\Api\SallerAuthController;
+Use App\Http\Controllers\Api\VendingMachineController;
 
 
 
@@ -21,6 +22,16 @@ Route::post('newaccount', [SallerAuthController::class, 'createSaller'])->name('
 Route::post('login', [SallerAuthController::class, 'login'])->name('Saller.login');
 Route::post('signOut', [SallerAuthController::class, 'signOut'])->name('Saller.signOut');
 Route::post('refreshToken', [SallerAuthController::class, 'refresh'])->name('Saller.refresh');
+
+
+ 
+Route::resource('VendingMachine', PhotoController::class);
+// ->withTrashed(['show']);
+
+// Route::resources([
+//     'photos' => PhotoController::class,
+//     'posts' => PostController::class,
+// ]);
 
 
 

@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use illuminate\Database\Eloquent\SoftDeletes;
 
 
-class payments extends Model
+
+class vendingMachine extends Model
 {
     use HasFactory,SoftDeletes;
+     protected $guarded = [];
 }

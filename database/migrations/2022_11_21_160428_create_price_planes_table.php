@@ -13,10 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('invoices', function (Blueprint $table) {
+        Schema::create('price_planes', function (Blueprint $table) {
             $table->id();
-            // $table->ipAddress('visitor');
-            // $table->macAddress('device');
+            $table->string('palne');
+            $table->string('cost');
+            $table->enum('active', ['1', '0'])->default('0');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -28,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('invoices');
+        Schema::dropIfExists('price_planes');
     }
 };
