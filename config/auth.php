@@ -47,7 +47,7 @@ return [
         'Saller' => [
             'driver' => 'jwt',
             'provider' => 'Saller',
-            'hash' => True
+            // 'hash' => True
         ]
     ],
 

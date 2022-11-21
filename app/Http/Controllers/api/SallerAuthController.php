@@ -99,50 +99,55 @@ class SallerAuthController extends Controller
     public function login(Request $request)
     {
         
-        $this->validate($request, [
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ]);
+            $this->validate($request, [
+                'username' => 'required|string',
+                'password' => 'required|string',
+            ]);
 
 
-         // If the class is using the ThrottlesLogins trait, we can automatically throttle
-    // the login attempts for this application. We'll key this by the username and
-    // the IP address of the client making these requests into this application.
-    if ($this->hasTooManyLoginAttempts($request)) {
-        $this->fireLockoutEvent($request);
-        return $this->sendLockoutResponse($request);
-    }
-
-
+        //hanling rate limite 
+            if ($this->hasTooManyLoginAttempts($request)) {
+                $this->fireLockoutEvent($request);
+                return $this->sendLockoutResponse($request);
+            }
+              
+            // don't let user login agnine
+            if (\Auth::check())
+            {
+            $this->incrementLoginAttempts($request);
+            return  $this->successResponse('', $message = " allready login", $code = 200);
+            }
     
-        if ($Saller =\Auth::guard('Saller')->attempt(['username' => $request->username, 'password' => $request->password],$request->get('remember'))){
-           
-        //   $user = \Auth::getLastAttempted();
-        $user =\Auth::guard('Saller')->user();
+            $Saller = Saller::where('username',  $request->username)->first();
+        //    dd($Saller);
+            
+             if(!$Saller) //check if user is exiet 
+            return $this->errorResponse($message = "Unknown username.", $code = 401, $data = null);
+            else if($Saller->active != 1){// check if saller is active 
+            $this->incrementLoginAttempts($request);
+               return $this->errorResponse($message = "This account has not been activated.", $code = 401, $data = null);
+             }
 
-        // $user = \Auth::guard('Saller')->getLastAttempted();
-        // $user =\Auth::Saller();
-        //  dd($user);
-        if($user->active == 0 ){
+            if (\Auth::guard('Saller')->attempt(['username' => $request->username, 'password' => $request->password],$request->get('remember'))){
+            
+            
+                
+            $token = \Auth::guard('Saller')->claims(['role' => 'Saller'])->attempt(['username' => $request->username, 'password' => $request->password]);
+
+            
+           $this->clearLoginAttempts($request);
+           
+            return  $this->successResponseArray([
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => auth('Saller')->factory()->getTTL() * 60*60
+            ], $message = "login secces", $code = 200);
+        
+                
+            }
             
             $this->incrementLoginAttempts($request);
-            return $this->errorResponse($message = "This account has not been activated.", $code = 401, $data = null);
-        }
-            
-        $token = $user->claims(['role' => 'Saller'])->attempt($credentials);
-
-        
-       $this->clearLoginAttempts($request);
-       return  $this->successResponseArray([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth('Saller')->factory()->getTTL() * 60*60
-        ], $message = "login secces", $code = 200);
-       
-             
-        }
-        $this->incrementLoginAttempts($request);
-        return $this->errorResponse($message = "Unauthorized", $code = 401, $data = null);
+            return $this->errorResponse($message = "Unauthorized", $code = 401, $data = null);
         
     }
 
