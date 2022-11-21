@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('email', 100)->unique();
             $table->string('gender');
             $table->string('password');
+            $table->enum('active', ['1', '0'])->default('0');
             $table->rememberToken();
             $table->timestamps();
         });
