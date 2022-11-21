@@ -45,8 +45,9 @@ return [
             'provider' => 'admins',
         ],
         'Saller' => [
-            'driver' => 'session',
+            'driver' => 'jwt',
             'provider' => 'Saller',
+            'hash' => True
         ]
     ],
 

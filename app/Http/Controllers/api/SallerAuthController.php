@@ -2,92 +2,132 @@
 
 namespace App\Http\Controllers\api;
 
+
+use JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+use App\Http\Traits\ApiResponser;
+
+use App\Http\Resources\SallerResource;
+use App\Models\Saller;
+use Illuminate\Support\Facades\Hash;
 
 class SallerAuthController extends Controller
 {
-    
-        protected function validator(array $data)
+
+    use ApiResponser;
+
+     public function __construct()
     {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        $this->middleware('auth:Saller', ['except' => ['createSaller','login']]);
+
+        // $this->middleware('auth:api')->except(['index', 'show']);    
+    }
+    public function refresh()
+{
+    return $this->respondWithToken(auth()->refresh());
+}
+    
+  protected function validator(array $data)
+    {
+
+       $rules=  [
+            'firstname' => ['required', 'string', 'max:255'],
+            'lastname' => ['required', 'string','max:255'],
+            'username' => ['required', 'string', 'max:255', 'unique:sallers'],
+            'address' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'mobile' => ['required', 'string', 'max:255', 'unique:sallers'],
+            'email' => ['required', 'email', 'max:255', 'unique:sallers' ],
+            
+            'gender' => ['required'],
+            'password' => ['required'],
+            'password_confirmation' => 'required|min:8|same:password'
+       ];
+
+         $error_messages=[
+            // 'firstname.required'=>'password are not the same password must match same value',
+            // 'password1.min'=>'password length must be greater than 8 characters',
+            // 'password2.min'=>'confirm-password length must be greater than 8 characters',  
+        ];
+        return Validator::make($data,$rules,$error_messages);
     }
 
     
-        protected function createAdmin(Request $request)
+   public function createSaller(Request $request)
     {
         $this->validator($request->all())->validate();
-        $admin = Admin::create([
-            'name' => $request['name'],
+        
+        try{
+            $Saller = Saller::create([
+            'firstname' => $request['firstname'],
+            'lastname' => $request['lastname'],
+            'username' => $request['username'],
+            'address' =>$request['address'],
+            'city' => $request['city'],
+            'mobile' => $request['mobile'],
             'email' => $request['email'],
+            'gender' => $request['gender'],
             'password' => Hash::make($request['password']),
-        ]);
-        return redirect()->intended('admin');
-    }
+        ]); 
 
 
-    
-    public function Login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required',
-            'password' => 'required',
-        ]);
-   
-        $credentials = $request->only('email', 'password');
-    if (\Auth::guard('Saller')->attempt($request->only(['email','password']), $request->get('remember'))){
-            return redirect()->intended('/admin/dashboard');
-        }
-
-  
-        return redirect("login")->withSuccess('Login details are not valid');
-    }
-
-    public function registration()
-    {
-        return view('auth.registration');
-    }
-      
-    public function customRegistration(Request $request)
-    {  
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-        ]);
-           
-        $data = $request->all();
-        $check = $this->create($data);
+        if($Saller)
+           return $this->successResponse(new SallerResource($Saller), 'Data Saved Successfully!');
+     
          
-        return redirect("dashboard")->withSuccess('You have signed-in');
+
+         
+        } catch (\Illuminate\Database\QueryException $exception) {
+   
+        return  $errorInfo = $exception->errorInfo;
+    
+      }
+    
+      return $this->errorResponse();
+        
     }
 
-    public function create(array $data)
+
+
+    public function login(Request $request)
     {
-      return User::create([
-        'name' => $data['name'],
-        'email' => $data['email'],
-        'password' => Hash::make($data['password'])
-      ]);
-    }    
-    
-    public function dashboard()
-    {
-        if(Auth::check()){
-            return view('dashboard');
+        
+        $this->validate($request, [
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+            $credentials = $request->only('username', 'password');
+        if ($Saller =\Auth::guard('Saller')->attempt($request->only(['username','password']), $request->get('remember'))){
+           
+        $token = \Auth::guard('Saller')->claims(['role' => 'Saller'])->attempt($credentials);
+
+
+
+       return  $this->successResponseArray([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('Saller')->factory()->getTTL() * 60*60
+        ], $message = "login secces", $code = 200);
+       
+             
         }
-  
-        return redirect("login")->withSuccess('You are not allowed to access');
+        return $this->errorResponse($message = "Unauthorized", $code = 401, $data = null);
+        
     }
+
+    
     
     public function signOut() {
-        Session::flush();
-        Auth::logout();
-  
-        return Redirect('login');
-    }
+     
+        \Auth::guard('Saller')->logout(true);
+         return $this->successResponse('', "logout done", 200);
+     }
+
+    
 }
