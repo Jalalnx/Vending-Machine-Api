@@ -3,7 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
+use App\Models\pricePlane;
+use App\Models\Saller;
 return new class extends Migration
 {
     /**
@@ -15,18 +16,16 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->id();
+     
             $table->string('item_name');
             $table->string('manufactory');
             $table->integer('count');
             $table->foreignIdFor(pricePlane::class);
             $table->foreignIdFor(Saller::class);
             $table->timestamp('note')->nullable();
-            $table->timestamp('production_date');
-            $table->timestamp('Validity_expiration_date');
+            $table->timestamp('production_date')->nullable();
+            $table->timestamp('Validity_expiration_date')->nullable();
             $table->softDeletes();
-            $table->timestamps();
-            
             $table->comment('products in the  stock');
             $table->timestamps();
         });

@@ -19,11 +19,12 @@ return new class extends Migration
             $table->string('capactiy');
             $table->string('model');
             $table->string('manufactory');
-            $table->geometry('positions');
+            // $table->geometry('positions');
             $table->boolean('Maintenance')->default(false);
             $table->boolean('active')->default(true);
             $table->integer('total_money_Collected');
             $table->integer('cerrent_money_Collected');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
